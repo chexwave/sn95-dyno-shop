@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SN95 Dyno Shop | Command Center</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --bg: #05070a;
+  --panel: #0e1218;
+  --panel2: #161b24;
+  --accent: #1e6fff;
+  --accent-glow: #3d8bff;
+  --ford-red: #e31c23;
+  --mustang-blue: #0a2540;
+  --text: #f4f6f8;
+  --muted: #8b93a7;
+  --green: #00e676;
+  --yellow: #ffd600;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  background-image: radial-gradient(circle at 20% 20%, #0a1528 0%, transparent 40%),
+                    radial-gradient(circle at 80% 80%, #1a0a12 0%, transparent 40%);
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: linear-gradient(90deg, #0a0e16 0%, #121820 100%);
+  border-bottom: 2px solid var(--accent);
+  box-shadow: 0 4px 20px rgba(30, 111, 255, 0.15);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo-badge {
+  background: var(--ford-red);
+  color: white;
+  font-weight: 800;
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+}
+.logo h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+.logo .sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+.status-lights {
+  display: flex;
+  gap: 8px;
+}
+.light {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #333;
+  box-shadow: 0 0 6px currentColor;
+}
+.light.on { background: var(--green); color: var(--green); }
+.main {
+  display: grid;
+  grid-template-columns: 340px 1fr 380px;
+  gap: 16px;
+  padding: 16px;
+  height: calc(100vh - 80px);
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid #1e2530;
+  border-radius: 12px;
+  padding: 16px;
+  overflow-y: auto;
+}
+.panel h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-glow);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.command-board {
+  background: #000;
+  border: 3px solid #222;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 0 40px rgba(30, 111, 255, 0.08);
+}
+.big-numbers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.number-box {
+  background: #0a0d14;
+  border: 1px solid #222;
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+}
+.number-box .label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.number-box .value {
+  font-size: 2.4rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--green);
+  text-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+}
+.number-box.torque .value { color: var(--yellow); text-shadow: 0 0 20px rgba(255, 214, 0, 0.3); }
+.delta {
+  font-size: 0.75rem;
+  color: var(--accent-glow);
+  text-align: center;
+  margin-top: 8px;
+}
+select, .mod-select {
+  width: 100%;
+  background: #0a0d14;
+  color: var(--text);
+  border: 1px solid #2a3344;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+}
+select:focus { outline: none; border-color: var(--accent); }
+.category-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.chart-container {
+  background: #000;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #222;
+  height: 280px;
+}
+#dynoChart { width: 100% !important; height: 100% !important; }
+.notes {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 12px;
+  padding: 8px;
+  background: #0a0d14;
+  border-radius: 6px;
+}
+.footer-note {
+  position: fixed;
+  bottom: 8px;
+  right: 16px;
+  font-size: 0.65rem;
+  color: #445;
+}
+@media (max-width: 1100px) {
+  .main { grid-template-columns: 1fr; height: auto; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">
+    <div class="logo-badge">GT</div>
+    <div>
+      <h1>SN95 DYNO SHOP</h1>
+      <div class="sub">1996–1998 Non-PI 4.6 2V Command Center</div>
+    </div>
+  </div>
+  <div class="status-lights">
+    <div class="light on"></div>
+    <div class="light on"></div>
+    <div class="light"></div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Left: Configurator -->
+  <div class="panel">
+    <h2>⚙️ Build Configurator</h2>
+    <div id="configurator"></div>
+    <div class="notes">
+      Gains are chassis-dyno averages from real SN95 Non-PI results. Extreme combinations may see diminishing returns. Reference tool only.
+    </div>
+  </div>
+
+  <!-- Center: Command Board -->
+  <div class="panel" style="display:flex; flex-direction:column;">
+    <div class="command-board">
+      <div class="big-numbers">
+        <div class="number-box">
+          <div class="label">RWHP</div>
+          <div class="value" id="rwhp">190</div>
+        </div>
+        <div class="number-box torque">
+          <div class="label">RWTQ</div>
+          <div class="value" id="rwtq">255</div>
+        </div>
+      </div>
+      <div class="delta" id="delta">+0 HP / +0 TQ over stock</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="dynoChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Right: Summary / Active Mods -->
+  <div class="panel">
+    <h2>📋 Active Configuration</h2>
+    <div id="summary"></div>
+  </div>
+</div>
+
+<div class="footer-note">Data-driven • SN95 Non-PI 4.6 2V Reference</div>
+
+<script>
+let partsDB = null;
+let chart = null;
+const selections = {};
+
+async function loadData() {
+  const res = await fetch('data/sn95_parts_database.json');
+  partsDB = await res.json();
+  initUI();
+  update();
+}
+
+function initUI() {
+  const container = document.getElementById('configurator');
+  const cats = partsDB.categories;
+  for (const [key, cat] of Object.entries(cats)) {
+    selections[key] = cat.options[0].id;
+    const label = document.createElement('div');
+    label.className = 'category-label';
+    label.textContent = cat.label;
+    const sel = document.createElement('select');
+    sel.dataset.category = key;
+    cat.options.forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt.id;
+      o.textContent = opt.name + (opt.rwhp ? ` (+${opt.rwhp}hp)` : '');
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', (e) => {
+      selections[key] = e.target.value;
+      update();
+    });
+    container.appendChild(label);
+    container.appendChild(sel);
+  }
+}
+
+function getOption(catKey, id) {
+  return partsDB.categories[catKey].options.find(o => o.id === id);
+}
+
+function calculate() {
+  let rwhp = partsDB.baseline.rwhp;
+  let rwtq = partsDB.baseline.rwtq;
+  const active = [];
+  for (const [key, id] of Object.entries(selections)) {
+    const opt = getOption(key, id);
+    if (opt && (opt.rwhp || opt.rwtq)) {
+      rwhp += opt.rwhp || 0;
+      rwtq += opt.rwtq || 0;
+      active.push({ category: partsDB.categories[key].label, ...opt });
+    }
+  }
+  return { rwhp, rwtq, active };
+}
+
+function update() {
+  const { rwhp, rwtq, active } = calculate();
+  document.getElementById('rwhp').textContent = Math.round(rwhp);
+  document.getElementById('rwtq').textContent = Math.round(rwtq);
+  const dhp = Math.round(rwhp - partsDB.baseline.rwhp);
+  const dtq = Math.round(rwtq - partsDB.baseline.rwtq);
+  document.getElementById('delta').textContent = `+${dhp} HP / +${dtq} TQ over stock`;
+
+  // Summary
+  const sum = document.getElementById('summary');
+  sum.innerHTML = active.map(a => 
+    `<div style="margin-bottom:8px;padding:8px;background:#0a0d14;border-radius:6px;font-size:0.8rem;">
+      <strong>${a.category}</strong><br>
+      ${a.name}<br>
+      <span style="color:#00e676">+${a.rwhp} hp / +${a.rwtq} tq</span>
+      ${a.notes ? `<div style="color:#8b93a7;font-size:0.7rem;margin-top:4px">${a.notes}</div>` : ''}
+    </div>`
+  ).join('') || '<div style="color:#8b93a7">Stock configuration</div>';
+
+  updateChart(rwhp, rwtq);
+}
+
+function updateChart(peakHp, peakTq) {
+  const labels = [2000,2500,3000,3500,4000,4500,5000,5500,6000];
+  // Simple synthetic curves that peak near the calculated numbers
+  const hpCurve = labels.map(rpm => {
+    const t = (rpm - 2000) / 4000;
+    return Math.round(peakHp * Math.sin(t * Math.PI * 0.85) * (0.55 + 0.45 * t));
+  });
+  const tqCurve = labels.map(rpm => {
+    const t = (rpm - 2000) / 4000;
+    return Math.round(peakTq * (0.85 + 0.15 * Math.sin(t * Math.PI)));
+  });
+
+  if (chart) chart.destroy();
+  const ctx = document.getElementById('dynoChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'RWHP', data: hpCurve, borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.1)', tension: 0.3, fill: true, pointRadius: 0 },
+        { label: 'RWTQ', data: tqCurve, borderColor: '#ffd600', backgroundColor: 'rgba(255,214,0,0.08)', tension: 0.3, fill: true, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8b93a7', font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { color: '#6b7385' }, grid: { color: '#1a2030' } },
+        y: { ticks: { color: '#6b7385' }, grid: { color: '#1a2030' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+loadData().catch(err => {
+  console.error(err);
+  document.getElementById('configurator').innerHTML = '<p style="color:#e31c23">Failed to load data. Serve this folder locally.</p>';
+});
+</script>
+</body>
+</html>
