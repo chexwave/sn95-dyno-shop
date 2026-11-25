@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SN95 Dyno Shop | Command Center</title>
+<title>SN95 Dyno Shop | 3D Command Center</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
   --bg: #05070a;
-  --panel: #0e1218;
-  --panel2: #161b24;
+  --panel: rgba(14, 18, 24, 0.92);
   --accent: #1e6fff;
   --accent-glow: #3d8bff;
   --ford-red: #e31c23;
-  --mustang-blue: #0a2540;
   --text: #f4f6f8;
   --muted: #8b93a7;
   --green: #00e676;
@@ -21,220 +21,267 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
-  background-image: radial-gradient(circle at 20% 20%, #0a1528 0%, transparent 40%),
-                    radial-gradient(circle at 80% 80%, #1a0a12 0%, transparent 40%);
+  overflow: hidden;
+  height: 100vh;
 }
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  background: linear-gradient(90deg, #0a0e16 0%, #121820 100%);
-  border-bottom: 2px solid var(--accent);
-  box-shadow: 0 4px 20px rgba(30, 111, 255, 0.15);
+#canvas-container {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
 }
-.logo {
+.ui { position: absolute; z-index: 10; pointer-events: none; }
+.ui > * { pointer-events: auto; }
+.panel {
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  border: 1px solid #1e2530;
+  border-radius: 12px;
+  padding: 14px;
+}
+.left-panel {
+  position: absolute;
+  top: 16px; left: 16px;
+  width: 300px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+.right-panel {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 320px;
+}
+.header-bar {
+  position: absolute;
+  top: 16px; left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 12px;
+  background: rgba(10, 14, 22, 0.9);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #1e2530;
 }
 .logo-badge {
   background: var(--ford-red);
   color: white;
   font-weight: 800;
-  font-size: 0.7rem;
-  padding: 4px 8px;
+  font-size: 0.65rem;
+  padding: 3px 7px;
   border-radius: 4px;
   letter-spacing: 0.1em;
 }
-.logo h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
-.logo .sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
-.status-lights {
-  display: flex;
-  gap: 8px;
-}
-.light {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: #333;
-  box-shadow: 0 0 6px currentColor;
-}
-.light.on { background: var(--green); color: var(--green); }
-.main {
-  display: grid;
-  grid-template-columns: 340px 1fr 380px;
-  gap: 16px;
-  padding: 16px;
-  height: calc(100vh - 80px);
-}
-.panel {
-  background: var(--panel);
-  border: 1px solid #1e2530;
-  border-radius: 12px;
-  padding: 16px;
-  overflow-y: auto;
-}
-.panel h2 {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent-glow);
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.command-board {
-  background: #000;
-  border: 3px solid #222;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: inset 0 0 40px rgba(30, 111, 255, 0.08);
-}
+h1 { font-size: 1.05rem; font-weight: 700; }
+.sub { font-size: 0.65rem; color: var(--muted); }
 .big-numbers {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 12px;
 }
 .number-box {
   background: #0a0d14;
   border: 1px solid #222;
   border-radius: 6px;
-  padding: 12px;
+  padding: 10px;
   text-align: center;
 }
-.number-box .label {
-  font-size: 0.65rem;
-  color: var(--muted);
-  letter-spacing: 0.1em;
-  margin-bottom: 4px;
-}
+.number-box .label { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.08em; }
 .number-box .value {
-  font-size: 2.4rem;
+  font-size: 1.8rem;
   font-weight: 800;
-  font-variant-numeric: tabular-nums;
   color: var(--green);
-  text-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+  text-shadow: 0 0 12px rgba(0, 230, 118, 0.35);
 }
-.number-box.torque .value { color: var(--yellow); text-shadow: 0 0 20px rgba(255, 214, 0, 0.3); }
-.delta {
-  font-size: 0.75rem;
-  color: var(--accent-glow);
-  text-align: center;
-  margin-top: 8px;
-}
-select, .mod-select {
+.number-box.torque .value { color: var(--yellow); }
+.delta { font-size: 0.7rem; color: var(--accent-glow); text-align: center; margin-bottom: 10px; }
+select {
   width: 100%;
   background: #0a0d14;
   color: var(--text);
   border: 1px solid #2a3344;
   border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 10px;
-  font-size: 0.85rem;
+  padding: 7px 9px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
 }
-select:focus { outline: none; border-color: var(--accent); }
-.category-label {
-  font-size: 0.7rem;
-  color: var(--muted);
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.chart-container {
-  background: #000;
-  border-radius: 8px;
-  padding: 12px;
-  border: 1px solid #222;
-  height: 280px;
-}
+.category-label { font-size: 0.65rem; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+.chart-container { background: #000; border-radius: 6px; padding: 8px; border: 1px solid #222; height: 180px; }
 #dynoChart { width: 100% !important; height: 100% !important; }
-.notes {
-  font-size: 0.68rem;
-  color: var(--muted);
-  line-height: 1.4;
-  margin-top: 12px;
-  padding: 8px;
-  background: #0a0d14;
-  border-radius: 6px;
-}
-.footer-note {
-  position: fixed;
-  bottom: 8px;
-  right: 16px;
-  font-size: 0.65rem;
-  color: #445;
-}
-@media (max-width: 1100px) {
-  .main { grid-template-columns: 1fr; height: auto; }
-}
+.notes { font-size: 0.62rem; color: var(--muted); margin-top: 10px; line-height: 1.3; }
+#summary { font-size: 0.75rem; }
+.mod-item { background: #0a0d14; padding: 6px 8px; border-radius: 5px; margin-bottom: 6px; }
 </style>
 </head>
 <body>
-<div class="header">
-  <div class="logo">
-    <div class="logo-badge">GT</div>
-    <div>
-      <h1>SN95 DYNO SHOP</h1>
-      <div class="sub">1996–1998 Non-PI 4.6 2V Command Center</div>
-    </div>
-  </div>
-  <div class="status-lights">
-    <div class="light on"></div>
-    <div class="light on"></div>
-    <div class="light"></div>
+<div id="canvas-container"></div>
+
+<div class="ui header-bar">
+  <div class="logo-badge">GT</div>
+  <div>
+    <h1>SN95 DYNO SHOP</h1>
+    <div class="sub">3D Command Center • 1996–1998 Non-PI 4.6 2V</div>
   </div>
 </div>
 
-<div class="main">
-  <!-- Left: Configurator -->
-  <div class="panel">
-    <h2>⚙️ Build Configurator</h2>
-    <div id="configurator"></div>
-    <div class="notes">
-      Gains are chassis-dyno averages from real SN95 Non-PI results. Extreme combinations may see diminishing returns. Reference tool only.
-    </div>
-  </div>
-
-  <!-- Center: Command Board -->
-  <div class="panel" style="display:flex; flex-direction:column;">
-    <div class="command-board">
-      <div class="big-numbers">
-        <div class="number-box">
-          <div class="label">RWHP</div>
-          <div class="value" id="rwhp">190</div>
-        </div>
-        <div class="number-box torque">
-          <div class="label">RWTQ</div>
-          <div class="value" id="rwtq">255</div>
-        </div>
-      </div>
-      <div class="delta" id="delta">+0 HP / +0 TQ over stock</div>
-    </div>
-    <div class="chart-container">
-      <canvas id="dynoChart"></canvas>
-    </div>
-  </div>
-
-  <!-- Right: Summary / Active Mods -->
-  <div class="panel">
-    <h2>📋 Active Configuration</h2>
-    <div id="summary"></div>
-  </div>
+<div class="ui left-panel panel">
+  <h2 style="font-size:0.8rem; color:var(--accent-glow); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.06em;">⚙️ Configurator</h2>
+  <div id="configurator"></div>
+  <div class="notes">Chassis-dyno averages from real SN95 Non-PI results. Reference tool only.</div>
 </div>
 
-<div class="footer-note">Data-driven • SN95 Non-PI 4.6 2V Reference</div>
+<div class="ui right-panel panel">
+  <div class="big-numbers">
+    <div class="number-box">
+      <div class="label">RWHP</div>
+      <div class="value" id="rwhp">190</div>
+    </div>
+    <div class="number-box torque">
+      <div class="label">RWTQ</div>
+      <div class="value" id="rwtq">255</div>
+    </div>
+  </div>
+  <div class="delta" id="delta">+0 HP / +0 TQ over stock</div>
+  <div class="chart-container">
+    <canvas id="dynoChart"></canvas>
+  </div>
+  <h2 style="font-size:0.75rem; color:var(--accent-glow); margin:12px 0 8px; text-transform:uppercase;">📋 Active Mods</h2>
+  <div id="summary"></div>
+</div>
 
 <script>
+// === Data ===
 let partsDB = null;
 let chart = null;
 const selections = {};
 
+// === Three.js Scene ===
+let scene, camera, renderer, controls;
+let rollers = [];
+let mustangGroup;
+
+function initThree() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0e14);
+  scene.fog = new THREE.Fog(0x0a0e14, 20, 60);
+
+  camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(8, 5, 12);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.target.set(0, 1.2, 0);
+
+  // Lights
+  const ambient = new THREE.AmbientLight(0x404060, 0.6);
+  scene.add(ambient);
+  const key = new THREE.DirectionalLight(0xffffff, 0.9);
+  key.position.set(10, 15, 8);
+  key.castShadow = true;
+  scene.add(key);
+  const fill = new THREE.PointLight(0x1e6fff, 0.4, 30);
+  fill.position.set(-6, 4, 4);
+  scene.add(fill);
+  const red = new THREE.PointLight(0xe31c23, 0.3, 20);
+  red.position.set(4, 3, -2);
+  scene.add(red);
+
+  // Floor
+  const floorGeo = new THREE.PlaneGeometry(40, 40);
+  const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a1e26, roughness: 0.8 });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  // Grid
+  const grid = new THREE.GridHelper(40, 40, 0x2a3344, 0x1a2030);
+  grid.position.y = 0.01;
+  scene.add(grid);
+
+  // Walls (simple)
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0x12161c, roughness: 0.9 });
+  const backWall = new THREE.Mesh(new THREE.BoxGeometry(30, 8, 0.3), wallMat);
+  backWall.position.set(0, 4, -12);
+  scene.add(backWall);
+  const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 8, 24), wallMat);
+  leftWall.position.set(-15, 4, 0);
+  scene.add(leftWall);
+
+  // Dyno rollers
+  const rollerMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.7, roughness: 0.3 });
+  for (let i = 0; i < 2; i++) {
+    const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 3.2, 32), rollerMat);
+    roller.rotation.z = Math.PI / 2;
+    roller.position.set(0, 0.35, i === 0 ? -0.8 : 0.8);
+    roller.castShadow = true;
+    scene.add(roller);
+    rollers.push(roller);
+  }
+  // Dyno frame
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.4, 2.2), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+  frame.position.set(0, 0.2, 0);
+  scene.add(frame);
+
+  // Simple Mustang silhouette (blue '98 GT style)
+  mustangGroup = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0a2540, metalness: 0.4, roughness: 0.5 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.1, 1.8), bodyMat);
+  body.position.y = 1.4;
+  body.castShadow = true;
+  mustangGroup.add(body);
+  const hood = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.15, 1.7), bodyMat);
+  hood.position.set(1.3, 1.95, 0);
+  mustangGroup.add(hood);
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 1.6), new THREE.MeshStandardMaterial({ color: 0x0a1a30 }));
+  cabin.position.set(-0.3, 2.1, 0);
+  mustangGroup.add(cabin);
+  // Wheels
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+  const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.25, 24);
+  [[-1.4, 0.38, 0.95], [-1.4, 0.38, -0.95], [1.5, 0.38, 0.95], [1.5, 0.38, -0.95]].forEach(pos => {
+    const w = new THREE.Mesh(wheelGeo, wheelMat);
+    w.rotation.z = Math.PI / 2;
+    w.position.set(...pos);
+    mustangGroup.add(w);
+  });
+  mustangGroup.position.set(0, 0, 0);
+  scene.add(mustangGroup);
+
+  // Ceiling lights
+  const lightBar = new THREE.Mesh(new THREE.BoxGeometry(12, 0.1, 0.4), new THREE.MeshStandardMaterial({ color: 0xeeeeee, emissive: 0x333333 }));
+  lightBar.position.set(0, 6.5, 0);
+  scene.add(lightBar);
+
+  window.addEventListener('resize', onResize);
+  animate();
+}
+
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  // Spin rollers slowly when power is up (visual feedback)
+  const speed = (parseInt(document.getElementById('rwhp').textContent) - 190) / 400;
+  rollers.forEach(r => r.rotation.x += 0.02 + speed * 0.05);
+  renderer.render(scene, camera);
+}
+
+// === Configurator (same logic) ===
 async function loadData() {
   const res = await fetch('data/sn95_parts_database.json');
   partsDB = await res.json();
@@ -244,24 +291,19 @@ async function loadData() {
 
 function initUI() {
   const container = document.getElementById('configurator');
-  const cats = partsDB.categories;
-  for (const [key, cat] of Object.entries(cats)) {
+  for (const [key, cat] of Object.entries(partsDB.categories)) {
     selections[key] = cat.options[0].id;
     const label = document.createElement('div');
     label.className = 'category-label';
     label.textContent = cat.label;
     const sel = document.createElement('select');
-    sel.dataset.category = key;
     cat.options.forEach(opt => {
       const o = document.createElement('option');
       o.value = opt.id;
       o.textContent = opt.name + (opt.rwhp ? ` (+${opt.rwhp}hp)` : '');
       sel.appendChild(o);
     });
-    sel.addEventListener('change', (e) => {
-      selections[key] = e.target.value;
-      update();
-    });
+    sel.addEventListener('change', e => { selections[key] = e.target.value; update(); });
     container.appendChild(label);
     container.appendChild(sel);
   }
@@ -294,23 +336,15 @@ function update() {
   const dtq = Math.round(rwtq - partsDB.baseline.rwtq);
   document.getElementById('delta').textContent = `+${dhp} HP / +${dtq} TQ over stock`;
 
-  // Summary
-  const sum = document.getElementById('summary');
-  sum.innerHTML = active.map(a => 
-    `<div style="margin-bottom:8px;padding:8px;background:#0a0d14;border-radius:6px;font-size:0.8rem;">
-      <strong>${a.category}</strong><br>
-      ${a.name}<br>
-      <span style="color:#00e676">+${a.rwhp} hp / +${a.rwtq} tq</span>
-      ${a.notes ? `<div style="color:#8b93a7;font-size:0.7rem;margin-top:4px">${a.notes}</div>` : ''}
-    </div>`
-  ).join('') || '<div style="color:#8b93a7">Stock configuration</div>';
+  document.getElementById('summary').innerHTML = active.map(a =>
+    `<div class="mod-item"><strong>${a.category}</strong><br>${a.name}<br><span style="color:#00e676">+${a.rwhp} hp / +${a.rwtq} tq</span></div>`
+  ).join('') || '<div style="color:#8b93a7">Stock</div>';
 
   updateChart(rwhp, rwtq);
 }
 
 function updateChart(peakHp, peakTq) {
-  const labels = [2000,2500,3000,3500,4000,4500,5000,5500,6000];
-  // Simple synthetic curves that peak near the calculated numbers
+  const labels = [2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000];
   const hpCurve = labels.map(rpm => {
     const t = (rpm - 2000) / 4000;
     return Math.round(peakHp * Math.sin(t * Math.PI * 0.85) * (0.55 + 0.45 * t));
@@ -319,7 +353,6 @@ function updateChart(peakHp, peakTq) {
     const t = (rpm - 2000) / 4000;
     return Math.round(peakTq * (0.85 + 0.15 * Math.sin(t * Math.PI)));
   });
-
   if (chart) chart.destroy();
   const ctx = document.getElementById('dynoChart').getContext('2d');
   chart = new Chart(ctx, {
@@ -332,9 +365,8 @@ function updateChart(peakHp, peakTq) {
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#8b93a7', font: { size: 11 } } } },
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8b93a7', font: { size: 10 } } } },
       scales: {
         x: { ticks: { color: '#6b7385' }, grid: { color: '#1a2030' } },
         y: { ticks: { color: '#6b7385' }, grid: { color: '#1a2030' }, beginAtZero: true }
@@ -343,10 +375,8 @@ function updateChart(peakHp, peakTq) {
   });
 }
 
-loadData().catch(err => {
-  console.error(err);
-  document.getElementById('configurator').innerHTML = '<p style="color:#e31c23">Failed to load data. Serve this folder locally.</p>';
-});
+initThree();
+loadData().catch(err => console.error(err));
 </script>
 </body>
 </html>
