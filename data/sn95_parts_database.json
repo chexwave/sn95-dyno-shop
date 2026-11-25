@@ -1,0 +1,90 @@
+{
+  "baseline": {
+    "id": "stock_1998_gt_5speed",
+    "year": "1996-1998",
+    "engine": "4.6L 2V Non-PI",
+    "transmission": "5-speed manual",
+    "rwhp": 190,
+    "rwtq": 255,
+    "notes": "Healthy stock chassis dyno average. Real range 185-200 rwhp / 250-270 rwtq.",
+    "sources": ["Multiple Corral/SN95 forum dyno sheets", "LMR 1998 GT example ~196 rwhp"]
+  },
+  "categories": {
+    "intake": {
+      "label": "Intake",
+      "options": [
+        { "id": "stock", "name": "Stock Airbox", "rwhp": 0, "rwtq": 0, "notes": "Factory restriction" },
+        { "id": "basic_cone", "name": "Basic Cone / Short Ram", "rwhp": 5, "rwtq": 4, "notes": "Minimal real gain" },
+        { "id": "bbk_1718", "name": "BBK 1718 / 17185 Fenderwell CAI", "rwhp": 10, "rwtq": 8, "notes": "Manufacturer 10-12 hp claim. Real chassis results typically 8-12 rwhp with tune.", "partNumber": "BBK 1718 / 17185" },
+        { "id": "quality_cai", "name": "Quality Fenderwell CAI (C&L, etc.)", "rwhp": 9, "rwtq": 7, "notes": "Similar to BBK class" },
+        { "id": "large_diameter", "name": "Large Diameter / Heat Shielded", "rwhp": 12, "rwtq": 9, "notes": "Best when intake is the bottleneck" }
+      ]
+    },
+    "headers": {
+      "label": "Headers",
+      "options": [
+        { "id": "stock", "name": "Stock Manifolds", "rwhp": 0, "rwtq": 0 },
+        { "id": "shorty", "name": "Shorty Headers", "rwhp": 8, "rwtq": 7, "notes": "Modest peak, better response" },
+        { "id": "longtube", "name": "Long-Tube Headers", "rwhp": 16, "rwtq": 14, "notes": "Consistent midrange + top-end on 4.6 2V" }
+      ]
+    },
+    "exhaust": {
+      "label": "Exhaust",
+      "options": [
+        { "id": "stock", "name": "Stock", "rwhp": 0, "rwtq": 0 },
+        { "id": "catback", "name": "Cat-Back Only", "rwhp": 6, "rwtq": 5 },
+        { "id": "xpipe_catback", "name": "X-Pipe + Cat-Back", "rwhp": 10, "rwtq": 8, "notes": "Common real gain range" }
+      ]
+    },
+    "throttle": {
+      "label": "Throttle Body / Plenum",
+      "options": [
+        { "id": "stock", "name": "Stock 65mm", "rwhp": 0, "rwtq": 0 },
+        { "id": "70mm", "name": "70-73mm TB + Plenum", "rwhp": 6, "rwtq": 5, "notes": "Gains once intake is opened" },
+        { "id": "75mm", "name": "75mm+ TB + Plenum", "rwhp": 8, "rwtq": 6 }
+      ]
+    },
+    "cams": {
+      "label": "Camshafts",
+      "options": [
+        { "id": "stock", "name": "Stock NPI Cams", "rwhp": 0, "rwtq": 0 },
+        { "id": "pi_cams", "name": "Stock PI Cams", "rwhp": 15, "rwtq": 10, "notes": "Common 13-16 rwhp on NPI heads" },
+        { "id": "xe262h", "name": "Comp Cams XE262H (Non-PI)", "rwhp": 20, "rwtq": 12, "notes": "Documented chassis +19 hp on modified Non-PI. Best street balance.", "partNumber": "Comp XE262H" },
+        { "id": "xe274", "name": "Comp XE274 / Aggressive", "rwhp": 30, "rwtq": 8, "notes": "Bigger top-end, more low-rpm trade-off" }
+      ]
+    },
+    "topend": {
+      "label": "Top End",
+      "options": [
+        { "id": "stock_npi", "name": "Stock NPI Heads + Intake", "rwhp": 0, "rwtq": 0 },
+        { "id": "pi_intake_only", "name": "PI Intake Only", "rwhp": 15, "rwtq": 12, "notes": "Real range 12-18 rwhp" },
+        { "id": "pi_cams_intake", "name": "PI Cams + PI Intake", "rwhp": 32, "rwtq": 22, "notes": "Common 30-35 rwhp budget path" },
+        { "id": "full_pi", "name": "Full PI Heads + Intake", "rwhp": 50, "rwtq": 30, "notes": "Documented examples 185→245 rwhp. Compression bump helps.", "partNumber": "PI Heads + Intake" }
+      ]
+    },
+    "pulleys": {
+      "label": "Underdrive Pulleys",
+      "options": [
+        { "id": "stock", "name": "Stock", "rwhp": 0, "rwtq": 0 },
+        { "id": "udp", "name": "Underdrive Pulleys", "rwhp": 4, "rwtq": 3 }
+      ]
+    },
+    "tune": {
+      "label": "Tune",
+      "options": [
+        { "id": "stock", "name": "Stock Tune", "rwhp": 0, "rwtq": 0 },
+        { "id": "dyno_tune", "name": "Dyno Tune", "rwhp": 12, "rwtq": 8, "notes": "Unlocks hardware gains" }
+      ]
+    },
+    "poweradders": {
+      "label": "Power Adders",
+      "options": [
+        { "id": "none", "name": "None", "rwhp": 0, "rwtq": 0 },
+        { "id": "nitrous_50", "name": "50 Shot Nitrous", "rwhp": 40, "rwtq": 50 },
+        { "id": "nitrous_100", "name": "100 Shot Nitrous", "rwhp": 80, "rwtq": 90 },
+        { "id": "supercharger_mild", "name": "Mild Supercharger (~7 psi)", "rwhp": 120, "rwtq": 100, "notes": "Centrifugal on healthy Non-PI shortblock" }
+      ]
+    }
+  },
+  "notes": "All gains are approximate chassis-dyno averages from real SN95 Non-PI 4.6 2V results. They stack additively with diminishing returns on extreme combinations. This is a diagnostic reference tool, not a guarantee."
+}
